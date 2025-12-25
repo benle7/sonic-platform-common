@@ -26,18 +26,20 @@ def main():
             sys.exit(1)
 
         logger.log_notice(f"Starting BMC firmware update with {image_path}")
-        ret, error_msg = bmc.update_firmware(image_path)
+        ret, (error_msg, updated_components) = bmc.update_firmware(image_path)
         if ret != 0:
             logger.log_error(f'Failed to update BMC firmware. Error {ret}: {error_msg}')
             sys.exit(1)
 
-        logger.log_notice("BMC firmware updated successfully, restarting BMC...")
-        ret, error_msg = bmc.request_bmc_reset()
-        if ret != 0:
-            logger.log_error(f'Failed to restart BMC. Error {ret}: {error_msg}')
-            sys.exit(1)
+        logger.log_notice(f"Firmware updated successfully via the BMC. Updated components: {updated_components}")
 
-        logger.log_notice("BMC firmware update completed successfully")
+        if bmc.get_firmware_id() in updated_components:
+            logger.log_notice("BMC firmware updated successfully, restarting BMC...")
+            ret, error_msg = bmc.request_bmc_reset()
+            if ret != 0:
+                logger.log_error(f'Failed to restart BMC. Error {ret}: {error_msg}')
+                sys.exit(1)
+            logger.log_notice("BMC firmware update completed successfully")
 
     except Exception as e:
         logger.log_error(f'BMC firmware update exception: {e}')
