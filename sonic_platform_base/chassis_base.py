@@ -810,3 +810,12 @@ class ChassisBase(device_base.DeviceBase):
             bool: True if the password change process completed successfully, False otherwise
         """
         raise NotImplementedError
+
+    def reset_sed_password(self):
+        """
+        Reset the SED (Self-Encrypting Drive) password to default for the platform.
+
+        Returns:
+            bool: True if the password reset process completed successfully, False otherwise
+        """
+        raise NotImplementedError
