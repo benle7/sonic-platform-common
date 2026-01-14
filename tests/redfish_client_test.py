@@ -1315,3 +1315,158 @@ class TestRedfishClient:
         
         assert ret == RedfishClient.ERR_CODE_UNEXPECTED_RESPONSE
         assert "Missing 'message' field" in msg
+
+    @mock.patch('subprocess.Popen')
+    def test_set_min_password_length_success(self, mock_popen):
+        """Test setting minimum password length successfully"""
+        side_effects = []
+        for fname in ['mock_bmc_login_token_response', 
+                      'mock_bmc_set_min_password_length_success_response']:
+            output = (load_redfish_response(fname), b'')
+            mock_process = mock.Mock()
+            mock_process.communicate.return_value = output
+            mock_process.returncode = 0
+            side_effects.append(mock_process)
+
+        mock_popen.side_effect = side_effects
+        rf = RedfishClient(TestRedfishClient.CURL_PATH,
+                           TestRedfishClient.BMC_INTERNAL_IP_ADDR,
+                           self.user_callback,
+                           self.password_callback)
+
+        ret = rf.login()
+        assert ret == RedfishClient.ERR_CODE_OK
+        
+        ret, msg = rf.redfish_api_set_min_password_length(10)
+        assert ret == RedfishClient.ERR_CODE_OK
+        assert msg == ''
+
+    @mock.patch('subprocess.Popen')
+    def test_set_min_password_length_failure(self, mock_popen):
+        """Test setting minimum password length with failure response"""
+        side_effects = []
+        for fname in ['mock_bmc_login_token_response', 
+                      'mock_bmc_set_min_password_length_failure_response']:
+            output = (load_redfish_response(fname), b'')
+            mock_process = mock.Mock()
+            mock_process.communicate.return_value = output
+            mock_process.returncode = 0
+            side_effects.append(mock_process)
+
+        mock_popen.side_effect = side_effects
+        rf = RedfishClient(TestRedfishClient.CURL_PATH,
+                           TestRedfishClient.BMC_INTERNAL_IP_ADDR,
+                           self.user_callback,
+                           self.password_callback)
+
+        ret = rf.login()
+        assert ret == RedfishClient.ERR_CODE_OK
+        
+        ret, msg = rf.redfish_api_set_min_password_length(5)
+        assert ret == RedfishClient.ERR_CODE_GENERIC_ERROR
+        assert "could not be written" in msg
+
+    @mock.patch('subprocess.Popen')
+    def test_get_min_password_length_success(self, mock_popen):
+        """Test getting minimum password length successfully"""
+        side_effects = []
+        for fname in ['mock_bmc_login_token_response', 
+                      'mock_bmc_get_account_service_response']:
+            output = (load_redfish_response(fname), b'')
+            mock_process = mock.Mock()
+            mock_process.communicate.return_value = output
+            mock_process.returncode = 0
+            side_effects.append(mock_process)
+
+        mock_popen.side_effect = side_effects
+        rf = RedfishClient(TestRedfishClient.CURL_PATH,
+                           TestRedfishClient.BMC_INTERNAL_IP_ADDR,
+                           self.user_callback,
+                           self.password_callback)
+
+        ret = rf.login()
+        assert ret == RedfishClient.ERR_CODE_OK
+        
+        ret, min_length = rf.redfish_api_get_min_password_length()
+        assert ret == RedfishClient.ERR_CODE_OK
+        assert min_length == 13
+
+    @mock.patch('subprocess.Popen')
+    def test_get_min_password_length_empty_response(self, mock_popen):
+        """Test getting minimum password length with empty response"""
+        side_effects = []
+        for fname in ['mock_bmc_login_token_response', 
+                      'mock_bmc_empty_response']:
+            output = (load_redfish_response(fname), b'')
+            mock_process = mock.Mock()
+            mock_process.communicate.return_value = output
+            mock_process.returncode = 0
+            side_effects.append(mock_process)
+
+        mock_popen.side_effect = side_effects
+        rf = RedfishClient(TestRedfishClient.CURL_PATH,
+                           TestRedfishClient.BMC_INTERNAL_IP_ADDR,
+                           self.user_callback,
+                           self.password_callback)
+
+        ret = rf.login()
+        assert ret == RedfishClient.ERR_CODE_OK
+        
+        ret, msg = rf.redfish_api_get_min_password_length()
+        assert ret == RedfishClient.ERR_CODE_UNEXPECTED_RESPONSE
+        assert "MinPasswordLength not found" in msg
+
+    @mock.patch('subprocess.Popen')
+    def test_open_session_success(self, mock_popen):
+        """Test successful session opening"""
+        output = (load_redfish_response('mock_bmc_login_token_response'), b'')
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = output
+        mock_process.returncode = 0
+        
+        mock_popen.return_value = mock_process
+        rf = RedfishClient(TestRedfishClient.CURL_PATH,
+                           TestRedfishClient.BMC_INTERNAL_IP_ADDR,
+                           self.user_callback,
+                           self.password_callback)
+        
+        ret, (msg, credentials) = rf.open_session()
+        assert ret == RedfishClient.ERR_CODE_OK
+        assert msg == 'Login successful'
+        assert credentials is not None
+        assert credentials[0] == 'abc123xyz'
+        assert credentials[1] == 'TVZI0pf8VCGbYAhw9cIF'
+
+    @mock.patch('subprocess.Popen')
+    def test_close_session_success(self, mock_popen):
+        """Test successful session closure"""
+        side_effects = []
+        
+        output = (load_redfish_response('mock_bmc_login_token_response'), b'')
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = output
+        mock_process.returncode = 0
+        side_effects.append(mock_process)
+        
+        output = (load_redfish_response('mock_session_service_sessions_response'), b'')
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = output
+        mock_process.returncode = 0
+        side_effects.append(mock_process)
+        
+        output = (load_redfish_response('mock_bmc_logout_response'), b'')
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = output
+        mock_process.returncode = 0
+        side_effects.append(mock_process)
+        
+        mock_popen.side_effect = side_effects
+        rf = RedfishClient(TestRedfishClient.CURL_PATH,
+                           TestRedfishClient.BMC_INTERNAL_IP_ADDR,
+                           self.user_callback,
+                           self.password_callback)
+        
+        rf.login()
+        ret, msg = rf.close_session('abc123xyz')
+        assert ret == RedfishClient.ERR_CODE_OK
+        assert msg == 'Session closed successfully'
