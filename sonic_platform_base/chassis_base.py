@@ -799,3 +799,23 @@ class ChassisBase(device_base.DeviceBase):
         """
         return self._bmc
 
+    def set_serial_console_owner(self, owner):
+        """
+        Set the serial console owner
+
+        Args:
+            owner: A string representing the requested owner, one of ['cpu', 'bmc']
+
+        Returns:
+            bool: True if system serial-console owner is set successfully, False if not
+        """
+        raise NotImplementedError
+    
+    def get_serial_console_owner(self):
+        """
+        Get the serial console owner
+
+        Returns:
+            string: 'cpu' or 'bmc'
+        """
+        raise NotImplementedError

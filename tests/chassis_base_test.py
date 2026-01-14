@@ -25,6 +25,8 @@ class TestChassisBase:
                 [chassis.get_dpu_id, [], {"name": "DPU0"}],
                 [chassis.get_dataplane_state, [], {}],
                 [chassis.get_controlplane_state, [], {}],
+                [chassis.get_serial_console_owner, [], {}],
+                [chassis.set_serial_console_owner, ["cpu"], {}],
             ]
 
         for method in not_implemented_methods:
