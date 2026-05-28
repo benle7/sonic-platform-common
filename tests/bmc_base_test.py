@@ -56,14 +56,14 @@ class TestBMCBase:
     @mock.patch('sonic_py_common.device_info.is_switch_host', create=True, return_value=True)
     @mock.patch('sonic_py_common.device_info.get_bmc_data', create=True,
                 return_value={'bmc_addr': '169.254.0.1'})
-    def test_get_presence_true(self, mock_get_bmc_data, mock_is_switch_host):
+    def test_get_presence_true(self, _mock_get_bmc_data, _mock_is_switch_host):
         """Test get_presence returns True on Switch-Host when bmc.json data exists"""
         bmc = BMCBase('169.254.0.1')
         assert bmc.get_presence() is True
 
     @mock.patch('sonic_py_common.device_info.is_switch_host', create=True, return_value=True)
     @mock.patch('sonic_py_common.device_info.get_bmc_data', create=True, return_value=None)
-    def test_get_presence_false_no_bmc_data(self, mock_get_bmc_data, mock_is_switch_host):
+    def test_get_presence_false_no_bmc_data(self, _mock_get_bmc_data, _mock_is_switch_host):
         """Test get_presence returns False when /etc/sonic/bmc.json is unavailable"""
         bmc = BMCBase('169.254.0.1')
         assert bmc.get_presence() is False
@@ -71,7 +71,7 @@ class TestBMCBase:
     @mock.patch('sonic_py_common.device_info.is_switch_host', create=True, return_value=False)
     @mock.patch('sonic_py_common.device_info.get_bmc_data', create=True,
                 return_value={'bmc_addr': '169.254.0.1'})
-    def test_get_presence_false_not_switch_host(self, mock_get_bmc_data, mock_is_switch_host):
+    def test_get_presence_false_not_switch_host(self, _mock_get_bmc_data, _mock_is_switch_host):
         """Test get_presence returns False on Switch-BMC even if bmc.json data exists"""
         bmc = BMCBase('169.254.0.1')
         assert bmc.get_presence() is False
